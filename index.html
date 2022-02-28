@@ -1,163 +1,64 @@
----
-layout: default
-title: Online RSA Key Generator
----
-<div class="row">
-  <div class="panel panel-default">
-    <div class="panel-heading"><h1>Online RSA Key Generator</h1></div>
-    <div class="panel-body">
-      <div class="row col-lg-12">
-        <div class="well">
-          <!-- newad -->
-          <ins class="adsbygoogle"
-          style="display:block"
-          data-ad-client="ca-pub-1902035200208763"
-          data-ad-slot="3517508761"
-          data-ad-format="auto"
-          data-full-width-responsive="true"></ins>
-          <script>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-          </script>
-        </div>
-      </div>
-      <div class="col-lg-2">
-        <div class="btn-group">
-          <div class="input-group">
-            <span class="input-group-addon">Key Size</span>
-            <button class="btn btn-default dropdown-toggle" id="key-size" type="button" data-value="1024"
-                    data-toggle="dropdown">1024 bit <span class="caret"></span></button>
-            <ul class="dropdown-menu">
-              <li><a class="change-key-size" data-value="512" href="#">512 bit</a></li>
-              <li><a class="change-key-size" data-value="1024" href="#">1024 bit</a></li>
-              <li><a class="change-key-size" data-value="2048" href="#">2048 bit</a></li>
-              <li><a class="change-key-size" data-value="4096" href="#">4096 bit</a></li>
-            </ul>
-          </div>
-        </div>
-        <br>&nbsp;<br>
-        <button id="generate" class="btn btn-primary">Generate New Keys</button>
-        <br>&nbsp;<br>
-        <span><i><small id="time-report"></small></i></span>
-        <br>&nbsp;<br>
-        <label for="async-ck"><input id="async-ck" type="checkbox"> Async</label>
-      </div>
-      <div class="col-lg-10">
-        <div class="row">
-          <div class="col-lg-6">
-            <label for="privkey">Private Key</label><br/>
-            <small>
-              <textarea id="privkey" rows="15" style="width:100%"></textarea>
-            </small>
-          </div>
-          <div class="col-lg-6">
-            <label for="pubkey">Public Key</label><br/>
-            <small><textarea id="pubkey" rows="15" style="width:100%" readonly="readonly"></textarea></small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="row">
-  <div class="panel panel-default">
-    <div class="panel-heading"><h3>RSA Encryption Test</h3></div>
-    <div class="panel-body">
-      <div class="col-lg-5">
-        <label for="input">Text to encrypt:</label><br/>
-        <textarea id="input" name="input" style="width: 100%" rows="4">This is a test!</textarea>
-      </div>
-      <div class="col-lg-2">
-        <label>&nbsp;</label><br/>
-        <button id="execute" class="btn btn-primary">Encrypt / Decrypt</button>
-      </div>
-      <div class="col-lg-5">
-        <label for="crypted">Encrypted:</label><br/>
-        <textarea id="crypted" name="crypted" style="width: 100%" rows="4"></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-<script type="text/javascript">
-  $(function () {
+<!doctype html>
+<html>
 
-    //Change the key size value for new keys
-    $(".change-key-size").each(function (index, value) {
-      var el = $(value);
-      var keySize = el.attr('data-value');
-      el.click(function (e) {
-        var button = $('#key-size');
-        button.attr('data-value', keySize);
-        button.html(keySize + ' bit <span class="caret"></span>');
-        e.preventDefault();
+<head>
+  <title>CryptoJS Demo</title>
+  <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+  <script src="node_modules/crypto-js/crypto-js.js"></script>
+  <script type="text/javascript">
+
+    // Call this code when the page is done loading.
+    $(function () {
+
+      $('#encode').click(function () {
+        const encrypted = CryptoJS.AES.encrypt($('#message').val(), $('#pass').val()).toString();
+        $('#message').val(encrypted);
       });
+
+      $('#decode').click(function () {
+        var bytes = CryptoJS.AES.decrypt($('#message').val(), $('#pass').val());
+        var originalText = bytes.toString(CryptoJS.enc.Utf8);
+        $('#message').val(originalText);
+      });
+
+      $('#copy').click(async function () {
+        await navigator.clipboard.writeText($('#message').val());
+        $('#output').text('Copied!');
+      });
+
+      $('#clear').click(async function () {
+        $('#message').val('');
+        $('#output').text('');
+      });
+
     });
+  </script>
+</head>
 
-    // Execute when they click the button.
-    $('#execute').click(function () {
+<body>
+  <p>
+    <label for="message">Message</label>
+  </p>
+  <p>
+    <textarea id="message" rows="15" cols="65"></textarea>
+  </p>
+  <p>
+    <label for="pass">Password:</label>
+    <input id="pass" type="password">
+  </p>
+  <p>
+    <input id="encode" type="button" value="Encode" />
+    <span>_______________</span>
+    <input id="decode" type="button" value="Decode" />
+    <span>_______________</span>
+    <input id="copy" type="button" value="Copy" />
+    <span>_______________</span>
+    <input id="clear" type="button" value="Clear" />
+  </p>
+  <p>
+    <label id="output"></label>
+  </p>
 
-      // Create the encryption object.
-      var crypt = new JSEncrypt();
+</body>
 
-      // Set the private.
-      crypt.setPrivateKey($('#privkey').val());
-      //return;
-      // If no public key is set then set it here...
-      var pubkey = $('#pubkey').val();
-      if (!pubkey) {
-        $('#pubkey').val(crypt.getPublicKey());
-      }
-
-      // Get the input and crypted values.
-      var input = $('#input').val();
-      var crypted = $('#crypted').val();
-
-      // Alternate the values.
-      if (input) {
-        $('#crypted').val(crypt.encrypt(input));
-        $('#input').val('');
-      }
-      else if (crypted) {
-        var decrypted = crypt.decrypt(crypted);
-        if (!decrypted)
-          decrypted = 'This is a test!';
-        $('#input').val(decrypted);
-        $('#crypted').val('');
-      }
-    });
-
-    var generateKeys = function () {
-      var sKeySize = $('#key-size').attr('data-value');
-      var keySize = parseInt(sKeySize);
-      var crypt = new JSEncrypt({default_key_size: keySize});
-      var async = $('#async-ck').is(':checked');
-      var dt = new Date();
-      var time = -(dt.getTime());
-      if (async) {
-        $('#time-report').text('.');
-        var load = setInterval(function () {
-          var text = $('#time-report').text();
-          $('#time-report').text(text + '.');
-        }, 500);
-        crypt.getKey(function () {
-          clearInterval(load);
-          dt = new Date();
-          time += (dt.getTime());
-          $('#time-report').text('Generated in ' + time + ' ms');
-          $('#privkey').val(crypt.getPrivateKey());
-          $('#pubkey').val(crypt.getPublicKey());
-        });
-        return;
-      }
-      crypt.getKey();
-      dt = new Date();
-      time += (dt.getTime());
-      $('#time-report').text('Generated in ' + time + ' ms');
-      $('#privkey').val(crypt.getPrivateKey());
-      $('#pubkey').val(crypt.getPublicKey());
-    };
-
-    // If they wish to generate new keys.
-    $('#generate').click(generateKeys);
-    generateKeys();
-  });
-</script>
+</html>
